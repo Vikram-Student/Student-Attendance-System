@@ -1,4 +1,7 @@
+import os
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash, Response
+from dotenv import load_dotenv
 import sqlite3
 import csv
 import io
@@ -13,12 +16,15 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
+
 app = Flask(__name__)
+
+load_dotenv()
 
 DATABASE_PATH = "database/attendance.db"
 
 # Secret key for Flask sessions
-app.secret_key = "change-this-secret-key"
+app.secret_key = os.getenv("SECRET_KEY")
 
 
 @app.route("/", methods=["GET", "POST"])
