@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Student Attendance System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* =========================================================
+        LOGIN PAGE - DEFINITIVE LARGE SCREEN DESIGN
+        ========================================================= */
+
+        .login-container {
+            min-height: 100vh !important;
+            width: 100% !important;
+
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+
+            padding: 40px !important;
+        }
+
+        .login-card {
+            width: min(560px, calc(100vw - 80px)) !important;
+            max-width: 560px !important;
+
+            background: #ffffff !important;
+
+            padding: 50px !important;
+
+            border-radius: 20px !important;
+
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14) !important;
+        }
+
+        .login-card h1 {
+            font-size: 34px !important;
+            line-height: 1.2 !important;
+            margin-bottom: 14px !important;
+        }
+
+        .login-subtitle {
+            font-size: 17px !important;
+            margin-bottom: 36px !important;
+        }
+
+        .form-group {
+            margin-bottom: 24px !important;
+        }
+
+        .form-group label {
+            font-size: 16px !important;
+            margin-bottom: 10px !important;
+        }
+
+        .form-group input {
+            width: 100% !important;
+            min-height: 52px !important;
+
+            padding: 14px 16px !important;
+
+            font-size: 16px !important;
+        }
+
+        .login-card button {
+            width: 100% !important;
+            min-height: 52px !important;
+
+            padding: 14px !important;
+
+            font-size: 16px !important;
+        }
+
+
+        /* 4K / Extra Large Screens */
+        @media (min-width: 2200px) {
+
+            .login-container {
+                padding: 60px !important;
+            }
+
+            .login-card {
+                width: 620px !important;
+                max-width: 620px !important;
+
+                padding: 60px !important;
+            }
+
+            .login-card h1 {
+                font-size: 40px !important;
+            }
+
+            .login-subtitle {
+                font-size: 19px !important;
+                margin-bottom: 42px !important;
+            }
+
+            .form-group {
+                margin-bottom: 28px !important;
+            }
+
+            .form-group label {
+                font-size: 18px !important;
+            }
+
+            .form-group input {
+                min-height: 58px !important;
+                padding: 16px 18px !important;
+                font-size: 18px !important;
+            }
+
+            .login-card button {
+                min-height: 58px !important;
+                font-size: 18px !important;
+            }
+        }
+
+
+        /* Mobile */
+        @media (max-width: 600px) {
+
+            .login-container {
+                padding: 20px !important;
+            }
+
+            .login-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 28px !important;
+            }
+
+            .login-card h1 {
+                font-size: 26px !important;
+            }
+
+            .login-subtitle {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <h1>Student Attendance System</h1>
+
+            <p class="login-subtitle">
+                Login to continue
+            </p>
+
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="messages">
+                {% for category, message in messages %}
+                <div class="message {{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+
+            <form method="POST">
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+
+                    <input type="text" id="username" name="username" placeholder="Enter username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+
+                    <input type="password" id="password" name="password" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit">
+                    Login
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

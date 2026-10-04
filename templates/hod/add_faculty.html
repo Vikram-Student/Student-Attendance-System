@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Faculty | Student Attendance System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>HOD Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/hod/dashboard" class="nav-item">
+                    Dashboard
+                </a>
+
+                <a href="/hod/students" class="nav-item">
+                    Students
+                </a>
+
+                <a href="/hod/faculty" class="nav-item active">
+                    Faculty
+                </a>
+
+                <a href="/hod/subjects" class="nav-item">
+                    Subjects
+                </a>
+
+                <a href="/hod/attendance" class="nav-item">
+                    Attendance
+                </a>
+
+                <a href="/hod/reports" class="nav-item">
+                    Reports
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-link">
+                    Logout
+                </a>
+            </div>
+
+        </aside>
+
+        <main class="main-content">
+
+            <header class="top-header">
+                <div>
+                    <h1>Add Faculty</h1>
+                    <p>Create a new faculty account</p>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages">
+                    {% for category, message in messages %}
+                    <div class="message {{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
+
+            <section class="dashboard-card">
+
+                <h2>Faculty Details</h2>
+
+                <form method="POST">
+
+                    <div class="form-group">
+                        <label for="faculty_id">
+                            Faculty ID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="faculty_id"
+                            name="faculty_id"
+                            placeholder="Enter faculty ID"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">
+                            Faculty Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Enter faculty name"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter faculty email"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">
+                            Username
+                        </label>
+
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Enter login username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter login password"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-actions">
+
+                        <a href="/hod/faculty" class="action-button edit-button">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="action-button">
+                            Add Faculty
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

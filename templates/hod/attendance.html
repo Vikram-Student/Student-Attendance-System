@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance | Student Attendance System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>HOD Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/hod/dashboard" class="nav-item">
+                    Dashboard
+                </a>
+
+                <a href="/hod/students" class="nav-item">
+                    Students
+                </a>
+
+                <a href="/hod/faculty" class="nav-item">
+                    Faculty
+                </a>
+
+                <a href="/hod/subjects" class="nav-item">
+                    Subjects
+                </a>
+
+                <a href="/hod/attendance" class="nav-item active">
+                    Attendance
+                </a>
+
+                <a href="/hod/reports" class="nav-item">
+                    Reports
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <a href="/logout" class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for category, message in messages %}
+
+                <div class="message {{ category }}">
+                    {{ message }}
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Header -->
+            <header class="top-header">
+
+                <div>
+                    <h1>Attendance</h1>
+                    <p>View and monitor student attendance</p>
+                </div>
+
+            </header>
+
+
+            <!-- Filters -->
+            <section class="dashboard-card">
+
+                <h2>Attendance Filters</h2>
+
+                <form method="GET" action="/hod/attendance" class="student-search">
+
+                    <!-- Date -->
+                    <input type="date" name="date" value="{{ selected_date }}">
+
+                    <!-- Subject -->
+                    <select name="subject_id">
+
+                        <option value="">
+                            All Subjects
+                        </option>
+
+                        {% for subject in subjects %}
+
+                        <option value="{{ subject['id'] }}" {% if selected_subject==subject['id']|string %} selected {%
+                            endif %}>
+                            {{ subject['subject_code'] }}
+                            - {{ subject['subject_name'] }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <button type="submit">
+                        Filter
+                    </button>
+
+                    <a href="/hod/attendance" class="action-button edit-button">
+                        Clear
+                    </a>
+
+                </form>
+                <div style="margin-top: 15px;">
+
+                    <a href="{{ url_for(
+                        'hod_attendance_export',
+                        date=selected_date,
+                        subject_id=selected_subject
+                        ) }}" class="action-button"
+                    >
+                        Export CSV
+                    </a>
+
+                    <a href="{{ url_for(
+                        'hod_attendance_export_excel',
+                        date=selected_date,
+                        subject_id=selected_subject
+                        ) }}" class="action-button"
+                    >
+                        Export Excel
+                    </a>
+
+                    <a
+                        href="{{ url_for(
+                        'hod_attendance_export_pdf',
+                        date=selected_date,
+                        subject_id=selected_subject
+                        ) }}"
+                        class="action-button"
+                    >
+                        Export PDF
+                    </a>
+
+                </div>
+
+            </section>
+
+            <section class="stats-grid">
+
+                <div class="stat-card">
+                    <h3>Total Records</h3>
+                    <p>{{ total_attendance }}</p>
+                    <span>Attendance records</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Present</h3>
+                    <p>{{ present_count }}</p>
+                    <span>Students present</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Absent</h3>
+                    <p>{{ absent_count }}</p>
+                    <span>Students absent</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Attendance %</h3>
+                    <p>{{ attendance_percentage }}%</p>
+                    <span>Selected records</span>
+                </div>
+
+            </section>
+
+            <section class="dashboard-card">
+
+                <h2>Weekly Attendance Summary</h2>
+
+                <p>
+                    Last 7 days:
+                    {{ week_start.strftime('%d-%m-%Y') }}
+                    to
+                    {{ week_end.strftime('%d-%m-%Y') }}
+                </p>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <h3>Total Records</h3>
+                        <p>{{ weekly_total }}</p>
+                        <span>Last 7 days</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Present</h3>
+                        <p>{{ weekly_present }}</p>
+                        <span>Students present</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Absent</h3>
+                        <p>{{ weekly_absent }}</p>
+                        <span>Students absent</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Attendance %</h3>
+                        <p>{{ weekly_percentage }}%</p>
+                        <span>Last 7 days</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="dashboard-card">
+
+                <h2>Monthly Attendance Summary</h2>
+
+                <p>
+                    Current month:
+                    {{ month_start.strftime('%d-%m-%Y') }}
+                    to
+                    {{ month_end.strftime('%d-%m-%Y') }}
+                </p>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <h3>Total Records</h3>
+                        <p>{{ monthly_total }}</p>
+                        <span>Current month</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Present</h3>
+                        <p>{{ monthly_present }}</p>
+                        <span>Students present</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Absent</h3>
+                        <p>{{ monthly_absent }}</p>
+                        <span>Students absent</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Attendance %</h3>
+                        <p>{{ monthly_percentage }}%</p>
+                        <span>Current month</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="dashboard-card">
+
+                <h2>Student Attendance Percentage</h2>
+
+                <p>
+                    Overall attendance percentage
+                    {% if selected_subject %}
+                    for the selected subject
+                    {% else %}
+                    across all subjects
+                    {% endif %}
+                </p>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Total Classes</th>
+                                <th>Present</th>
+                                <th>Absent</th>
+                                <th>Attendance %</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% if student_percentage_records %}
+
+                            {% for student in student_percentage_records %}
+
+                            {% set total = student['total_classes'] or 0 %}
+                            {% set present = student['present_classes'] or 0 %}
+                            {% set absent = student['absent_classes'] or 0 %}
+
+                            {% if total > 0 %}
+                            {% set percentage = ((present / total) * 100)|round(2) %}
+                            {% else %}
+                            {% set percentage = 0 %}
+                            {% endif %}
+
+                            <tr>
+
+                                <td>
+                                    {{ student['student_id'] }}
+                                </td>
+
+                                <td>
+                                    {{ student['name'] }}
+                                </td>
+
+                                <td>
+                                    {{ total }}
+                                </td>
+
+                                <td>
+                                    {{ present }}
+                                </td>
+
+                                <td>
+                                    {{ absent }}
+                                </td>
+
+                                <td>
+                                    {{ percentage }}%
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                            {% else %}
+
+                            <tr>
+
+                                <td colspan="9" style="text-align: center;">
+                                    No student attendance data available.
+                                </td>
+
+                            </tr>
+
+                            {% endif %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <!-- Attendance Table -->
+            <section class="dashboard-card">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2>Attendance Records</h2>
+
+                        {% if attendance_records %}
+                        <p>
+                            Showing {{ attendance_records|length }}
+                            attendance record(s)
+                        </p>
+                        {% else %}
+                        <p>No attendance records available.</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Subject</th>
+                                <th>Year</th>
+                                <th>Section</th>
+                                <th>Date</th>
+                                <th>Period</th>
+                                <th>Status</th>
+                                <th>Marked By</th>
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% if attendance_records %}
+
+                            {% for record in attendance_records %}
+
+                            <tr>
+                                <td>{{ record['student_id'] }}</td>
+                                <td>{{ record['student_name'] }}</td>
+
+                                <td>
+                                    {{ record['subject_code'] }} - {{ record['subject_name'] }}
+                                </td>
+
+                                <td>{{ record['year'] }}</td>
+                                <td>{{ record['section'] }}</td>
+                                <td>{{ record['date'] }}</td>
+                                <td>Period {{ record['period'] }}</td>
+                                <td>
+                                    {% if record['status'] == 'PRESENT' %}
+                                    <span class="attendance-present">
+                                        Present
+                                    </span>
+                                    {% else %}
+                                    <span class="attendance-absent">
+                                        Absent
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record['faculty_name'] }}</td>
+                            </tr>
+
+                            {% endfor %}
+
+                            {% else %}
+
+                            <tr>
+
+                                <td colspan="9" style="text-align: center;">
+                                    No attendance records found.
+                                </td>
+
+                            </tr>
+
+                            {% endif %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

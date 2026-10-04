@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard | Student Attendance System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .student-profile {
+            margin-bottom: 24px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .profile-item {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 10px;
+        }
+
+        .profile-item span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .profile-item strong {
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .attendance-percentage {
+            font-size: 28px !important;
+        }
+
+        .attendance-good {
+            color: #16a34a !important;
+        }
+
+        .attendance-warning {
+            color: #d97706 !important;
+        }
+
+        .attendance-danger {
+            color: #dc2626 !important;
+        }
+
+        .student-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .student-table th,
+        .student-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .student-table th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .student-table td {
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-present {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-absent {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .percentage-badge {
+            font-weight: 700;
+        }
+
+        .empty-state {
+            padding: 35px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .dashboard-section {
+            margin-top: 24px;
+        }
+
+        .dashboard-section .dashboard-card {
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1000px) {
+            .profile-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .student-table th,
+            .student-table td {
+                padding: 12px;
+                white-space: nowrap;
+            }
+        }
+
+        .attendance-alert-card {
+            margin-top: 24px;
+        }
+
+        .overall-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            border-radius: 10px;
+            margin-top: 18px;
+        }
+
+        .overall-warning {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+        }
+
+        .overall-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+
+        .overall-neutral {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .alert-icon {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .overall-warning .alert-icon {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .overall-success .alert-icon {
+            background: #bbf7d0;
+            color: #15803d;
+        }
+
+        .overall-neutral .alert-icon {
+            background: #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        .alert-content strong {
+            display: block;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .alert-content p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .subject-warning-list {
+            margin-top: 24px;
+        }
+
+        .subject-warning-list h3 {
+            margin-bottom: 12px;
+            color: #334155;
+            font-size: 16px;
+        }
+
+        .subject-warning-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 9px;
+        }
+
+        .subject-warning-item strong {
+            display: block;
+            color: #334155;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .subject-warning-item span {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .warning-percentage {
+            color: #dc2626 !important;
+            font-size: 15px !important;
+            font-weight: 700;
+        }
+
+        .no-warning-message {
+            margin-top: 18px;
+            padding: 16px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+        }
+
+        .no-warning-message strong {
+            display: block;
+            color: #15803d;
+            margin-bottom: 5px;
+        }
+
+        .no-warning-message p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 700px) {
+
+            .overall-alert {
+                padding: 14px;
+            }
+
+            .subject-warning-item {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .warning-percentage {
+                align-self: flex-start;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>Student Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="{{ url_for('student_dashboard') }}" class="nav-item active">
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('student_history') }}" class="nav-item">
+                    Attendance History
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <a href="{{ url_for('logout') }}" class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for category, message in messages %}
+
+                <div class="message {{ category }}">
+                    {{ message }}
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Header -->
+            <header class="top-header">
+
+                <div>
+
+                    <h1>Student Dashboard</h1>
+
+                    <p>
+                        View your attendance and academic information
+                    </p>
+
+                </div>
+
+                <div class="user-info">
+
+                    <span>
+                        Welcome, {{ student['name'] }}
+                    </span>
+
+                </div>
+
+            </header>
+
+
+            <!-- Student Profile -->
+            <section class="dashboard-card student-profile">
+
+                <h2>Student Information</h2>
+
+                <div class="profile-grid">
+
+                    <div class="profile-item">
+
+                        <span>Student ID</span>
+
+                        <strong>
+                            {{ student['student_id'] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <span>Name</span>
+
+                        <strong>
+                            {{ student['name'] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <span>Branch</span>
+
+                        <strong>
+                            {{ student['branch'] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <span>Year & Section</span>
+
+                        <strong>
+                            Year {{ student['year'] }} - Section {{ student['section'] }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Attendance Statistics -->
+            <section class="stats-grid">
+
+                <div class="stat-card">
+
+                    <h3>Total Classes</h3>
+
+                    <p>
+                        {{ total_classes }}
+                    </p>
+
+                    <span>
+                        Classes conducted
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>Present</h3>
+
+                    <p>
+                        {{ present_classes }}
+                    </p>
+
+                    <span>
+                        Classes attended
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>Absent</h3>
+
+                    <p>
+                        {{ absent_classes }}
+                    </p>
+
+                    <span>
+                        Classes missed
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>Attendance</h3>
+
+                    <p class="attendance-percentage
+                    {% if attendance_percentage >= 75 %}
+                        attendance-good
+                    {% elif attendance_percentage >= 65 %}
+                        attendance-warning
+                    {% else %}
+                        attendance-danger
+                    {% endif %}">
+
+                        {{ attendance_percentage }}%
+
+                    </p>
+
+                    <span>
+                        Overall attendance
+                    </span>
+
+                </div>
+
+            </section>
+
+
+            <!-- Subject-wise Attendance -->
+            <section class="dashboard-section">
+
+                <div class="dashboard-card">
+
+                    <h2>Subject-wise Attendance</h2>
+
+                    {% if subject_attendance %}
+
+                    <div class="student-table-wrapper">
+
+                        <table class="student-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Subject Code</th>
+
+                                    <th>Subject Name</th>
+
+                                    <th>Total</th>
+
+                                    <th>Present</th>
+
+                                    <th>Absent</th>
+
+                                    <th>Percentage</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for subject in subject_attendance %}
+
+                                {% set subject_total = subject['total_classes'] or 0 %}
+                                {% set subject_present = subject['present_classes'] or 0 %}
+                                {% set subject_absent = subject['absent_classes'] or 0 %}
+
+                                {% if subject_total > 0 %}
+                                {% set subject_percentage = ((subject_present / subject_total) * 100) | round(2) %}
+                                {% else %}
+                                {% set subject_percentage = 0 %}
+                                {% endif %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ subject['subject_code'] }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject['subject_name'] }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject_total }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject_present }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject_absent }}
+                                    </td>
+
+                                    <td>
+
+                                        <span class="percentage-badge
+                                                {% if subject_percentage >= 75 %}
+                                                    attendance-good
+                                                {% elif subject_percentage >= 65 %}
+                                                    attendance-warning
+                                                {% else %}
+                                                    attendance-danger
+                                                {% endif %}">
+
+                                            {{ subject_percentage }}%
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="empty-state">
+
+                        No subject attendance records available.
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </section>
+
+            <!-- Attendance Alerts -->
+
+            <section class="dashboard-section">
+
+                <div class="dashboard-card attendance-alert-card">
+
+                    <h2>Attendance Status</h2>
+
+                    {% if attendance_percentage < 75 %} <div class="overall-alert overall-warning">
+
+                        <div class="alert-icon">
+                            !
+                        </div>
+
+                        <div class="alert-content">
+
+                            <strong>
+                                Low Overall Attendance
+                            </strong>
+
+                            <p>
+                                Your overall attendance is
+                                {{ attendance_percentage }}%.
+                                It is below the 75% attendance threshold.
+                            </p>
+
+                        </div>
+
+                </div>
+
+                {% elif attendance_percentage == 75 %}
+
+                <div class="overall-alert overall-neutral">
+
+                    <div class="alert-icon">
+                        ✓
+                    </div>
+
+                    <div class="alert-content">
+
+                        <strong>
+                            Attendance at Threshold
+                        </strong>
+
+                        <p>
+                            Your overall attendance is exactly
+                            75%.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <div class="overall-alert overall-success">
+
+                    <div class="alert-icon">
+                        ✓
+                    </div>
+
+                    <div class="alert-content">
+
+                        <strong>
+                            Attendance Status: Good
+                        </strong>
+
+                        <p>
+                            Your overall attendance is
+                            {{ attendance_percentage }}%.
+                            Keep maintaining your attendance.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- Subject Alerts -->
+
+                {% set low_subjects = [] %}
+
+                {% for subject in subject_attendance %}
+
+                {% set subject_total = subject['total_classes'] or 0 %}
+                {% set subject_present = subject['present_classes'] or 0 %}
+
+                {% if subject_total > 0 %}
+
+                {% set subject_percentage =
+                ((subject_present / subject_total) * 100) | round(2)
+                %}
+
+                {% if subject_percentage < 75 %} {% set ignored=low_subjects.append(subject) %} {% endif %} {% endif %}
+                    {% endfor %} {% if low_subjects %} <div class="subject-warning-list">
+
+                    <h3>
+                        Subjects Requiring Attention
+                    </h3>
+
+                    {% for subject in low_subjects %}
+
+                    {% set subject_total =
+                    subject['total_classes'] or 0
+                    %}
+
+                    {% set subject_present =
+                    subject['present_classes'] or 0
+                    %}
+
+                    {% if subject_total > 0 %}
+
+                    {% set subject_percentage =
+                    ((subject_present / subject_total) * 100) | round(2)
+                    %}
+
+                    {% else %}
+
+                    {% set subject_percentage = 0 %}
+
+                    {% endif %}
+
+
+                    <div class="subject-warning-item">
+
+                        <div>
+
+                            <strong>
+                                {{ subject['subject_code'] }}
+                                -
+                                {{ subject['subject_name'] }}
+                            </strong>
+
+                            <span>
+                                {{ subject_present }}
+                                /
+                                {{ subject_total }}
+                                classes attended
+                            </span>
+
+                        </div>
+
+
+                        <span class="warning-percentage">
+                            {{ subject_percentage }}%
+                        </span>
+
+                    </div>
+
+                    {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="no-warning-message">
+
+        <strong>
+            No Low-Attendance Subjects
+        </strong>
+
+        <p>
+            All subjects are currently at or above
+            the 75% attendance threshold.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+    </div>
+
+    </section>
+
+    <!-- Recent Attendance History -->
+    <section class="dashboard-section">
+
+        <div class="dashboard-card">
+
+            <h2>Recent Attendance</h2>
+
+            {% if attendance_history %}
+
+            <div class="student-table-wrapper">
+
+                <table class="student-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Date</th>
+
+                            <th>Period</th>
+
+                            <th>Subject</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for record in attendance_history %}
+
+                        <tr>
+
+                            <td>
+                                {{ record['date'] }}
+                            </td>
+
+                            <td>
+                                {{ record['period'] }}
+                            </td>
+
+                            <td>
+                                {{ record['subject_code'] }}
+                                -
+                                {{ record['subject_name'] }}
+                            </td>
+
+                            <td>
+
+                                {% if record['status'] == 'PRESENT' %}
+
+                                <span class="status-badge status-present">
+                                    Present
+                                </span>
+
+                                {% else %}
+
+                                <span class="status-badge status-absent">
+                                    Absent
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="empty-state">
+
+                No attendance records available.
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    </main>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Student | HOD Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>HOD Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/hod/dashboard" class="nav-item">
+                    Dashboard
+                </a>
+
+                <a href="/hod/students" class="nav-item active">
+                    Students
+                </a>
+
+                <a href="/hod/faculty" class="nav-item">
+                    Faculty
+                </a>
+
+                <a href="/hod/subjects" class="nav-item">
+                    Subjects
+                </a>
+
+                <a href="/hod/attendance" class="nav-item">
+                    Attendance
+                </a>
+
+                <a href="/hod/reports" class="nav-item">
+                    Reports
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <a href="/logout" class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <header class="top-header">
+
+                <div>
+                    <h1>Add Student</h1>
+                    <p>Register a new student</p>
+                </div>
+
+                <div class="user-info">
+                    <span>HOD</span>
+                </div>
+
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="messages">
+                        {% for category, message in messages %}
+                            <div class="message {{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Add Student Form -->
+            <section class="dashboard-card">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2>Student Information</h2>
+                        <p>Enter the student's details below.</p>
+                    </div>
+
+                </div>
+
+
+                <form class="student-form" method="POST">
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="student_id">
+                                Student ID
+                            </label>
+
+                            <input
+                                type="text"
+                                id="student_id"
+                                name="student_id"
+                                placeholder="Example: 23CSE001"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="name">
+                                Student Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                placeholder="Enter student name"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="email">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="student@example.com"
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="branch">
+                                Branch
+                            </label>
+
+                            <input
+                                type="text"
+                                id="branch"
+                                name="branch"
+                                placeholder="Example: CSE"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="year">
+                                Year
+                            </label>
+
+                            <select id="year" name="year" required>
+
+                                <option value="">
+                                    Select Year
+                                </option>
+
+                                <option value="1">
+                                    1st Year
+                                </option>
+
+                                <option value="2">
+                                    2nd Year
+                                </option>
+
+                                <option value="3">
+                                    3rd Year
+                                </option>
+
+                                <option value="4">
+                                    4th Year
+                                </option>
+
+                            </select>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="section">
+                                Section
+                            </label>
+
+                            <select id="section" name="section" required>
+
+                                <option value="">
+                                    Select Section
+                                </option>
+
+                                <option value="A">
+                                    A
+                                </option>
+
+                                <option value="B">
+                                    B
+                                </option>
+
+                                <option value="C">
+                                    C
+                                </option>
+
+                                <option value="D">
+                                    D
+                                </option>
+
+                            </select>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-actions">
+
+                        <a
+                            href="/hod/students"
+                            class="secondary-button"
+                        >
+                            Cancel
+                        </a>
+
+                        <button type="submit">
+                            Add Student
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+</html>

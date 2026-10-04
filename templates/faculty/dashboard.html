@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Faculty Dashboard | Student Attendance System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>Faculty Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/faculty/dashboard" class="nav-item active">
+                    Dashboard
+                </a>
+
+                <a href="/faculty/subjects" class="nav-item">
+                    My Subjects
+                </a>
+
+                <a href="/faculty/attendance" class="nav-item">
+                    Mark Attendance
+                </a>
+
+                <a href="/faculty/history" class="nav-item">
+                    Attendance History
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <a href="/logout" class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for category, message in messages %}
+
+                <div class="message {{ category }}">
+                    {{ message }}
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Header -->
+            <header class="top-header">
+
+                <div>
+
+                    <h1>Faculty Dashboard</h1>
+
+                    <p>
+                        Student Attendance Management System
+                    </p>
+
+                </div>
+
+                <div class="user-info">
+
+                    <span>
+                        Welcome, {{ session["username"] }}
+                    </span>
+
+                </div>
+
+            </header>
+
+
+            <!-- Statistics -->
+            <section class="stats-grid">
+
+                <div class="stat-card">
+
+                    <h3>My Subjects</h3>
+
+                    <p>
+                        {{ total_subjects }}
+                    </p>
+
+                    <span>
+                        Assigned subjects
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>Students</h3>
+
+                    <p>
+                        {{ total_students }}
+                    </p>
+
+                    <span>
+                        Students in my classes
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>Today's Sessions</h3>
+
+                    <p>
+                        {{ today_sessions }}
+                    </p>
+
+                    <span>
+                        Attendance sessions
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h3>Today's Attendance</h3>
+
+                    <p>
+                        {{ today_attendance }}%
+                    </p>
+
+                    <span>
+                        Overall attendance
+                    </span>
+
+                </div>
+
+            </section>
+
+
+            <!-- Dashboard Sections -->
+            <section class="dashboard-grid">
+
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card">
+
+                    <h2>Quick Actions</h2>
+
+                    <div class="quick-actions">
+
+                        <a href="/faculty/subjects" class="quick-action-button">
+                            My Subjects
+                        </a>
+
+                        <a href="/faculty/attendance" class="quick-action-button">
+                            Mark Attendance
+                        </a>
+
+                        <a href="/faculty/history" class="quick-action-button">
+                            Attendance History
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Information -->
+                <div class="dashboard-card">
+
+                    <h2>Faculty Information</h2>
+
+                    <p>
+                        Use the Faculty Panel to view your assigned
+                        subjects and manage student attendance.
+                    </p>
+
+                </div>
+
+            </section>
+            <!-- Faculty Attendance Summary -->
+
+            <section class="summary-section">
+
+                <div class="section-heading">
+
+                    <h2>Attendance Summary</h2>
+
+                    <p>
+                        Overview of attendance handled by you.
+                    </p>
+
+                </div>
+
+
+                <div class="summary-grid">
+
+                    <div class="summary-card">
+
+                        <div class="summary-label">
+                            Total Sessions
+                        </div>
+
+                        <div class="summary-value">
+                            {{ total_sessions }}
+                        </div>
+
+                        <div class="summary-description">
+                            Attendance sessions conducted
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-label">
+                            Total Records
+                        </div>
+
+                        <div class="summary-value">
+                            {{ total_attendance }}
+                        </div>
+
+                        <div class="summary-description">
+                            Student attendance records
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-label">
+                            Present
+                        </div>
+
+                        <div class="summary-value present-value">
+                            {{ total_present }}
+                        </div>
+
+                        <div class="summary-description">
+                            Students marked present
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-label">
+                            Absent
+                        </div>
+
+                        <div class="summary-value absent-value">
+                            {{ total_absent }}
+                        </div>
+
+                        <div class="summary-description">
+                            Students marked absent
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-label">
+                            Overall Attendance
+                        </div>
+
+                        <div class="summary-value">
+                            {{ overall_percentage }}%
+                        </div>
+
+                        <div class="summary-description">
+                            Overall attendance percentage
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Subject-wise Attendance -->
+
+            <section class="summary-section">
+
+                <div class="section-heading">
+
+                    <h2>Subject-wise Attendance</h2>
+
+                    <p>
+                        Attendance statistics for your assigned subjects.
+                    </p>
+
+                </div>
+
+
+                <div class="summary-table-card">
+
+                    {% if subject_summary %}
+
+                    <div class="table-wrapper">
+
+                        <table class="summary-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Subject</th>
+                                    <th>Year</th>
+                                    <th>Section</th>
+                                    <th>Total</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Attendance %</th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for subject in subject_summary %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+                                            {{ subject['subject_code'] }}
+                                        </strong>
+
+                                        <br>
+
+                                        <span class="subject-name">
+                                            {{ subject['subject_name'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ subject['year'] }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ subject['section'] }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ subject['total_records'] }}
+                                    </td>
+
+
+                                    <td>
+
+                                        <span class="present-text">
+                                            {{ subject['present_count'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <span class="absent-text">
+                                            {{ subject['absent_count'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <strong>
+                                            {{ subject['percentage'] }}%
+                                        </strong>
+
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="empty-summary">
+
+                        No attendance data available yet.
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </section>
+
+
+            <!-- Recent Attendance Sessions -->
+
+            <section class="summary-section">
+
+                <div class="section-heading">
+
+                    <h2>Recent Attendance Sessions</h2>
+
+                    <p>
+                        Your five most recent attendance sessions.
+                    </p>
+
+                </div>
+
+
+                <div class="summary-table-card">
+
+                    {% if recent_sessions %}
+
+                    <div class="table-wrapper">
+
+                        <table class="summary-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Subject</th>
+                                    <th>Year</th>
+                                    <th>Section</th>
+                                    <th>Date</th>
+                                    <th>Period</th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for item in recent_sessions %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+                                            {{ item['subject_code'] }}
+                                        </strong>
+
+                                        <br>
+
+                                        <span class="subject-name">
+                                            {{ item['subject_name'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ item['year'] }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ item['section'] }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ item['date'] }}
+                                    </td>
+
+
+                                    <td>
+                                        Period {{ item['period'] }}
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="empty-summary">
+
+                        No attendance sessions found.
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

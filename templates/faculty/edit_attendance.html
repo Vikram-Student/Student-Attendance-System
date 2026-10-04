@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Attendance</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .edit-header {
+            margin-bottom: 24px;
+        }
+
+        .edit-header h1 {
+            margin-bottom: 6px;
+        }
+
+        .edit-header p {
+            color: #64748b;
+        }
+
+        .session-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+        }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .info-box strong {
+            font-size: 17px;
+        }
+
+        .edit-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+        }
+
+        .edit-card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .edit-card-header h2 {
+            margin: 0;
+        }
+
+        .edit-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .edit-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .edit-table th,
+        .edit-table td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .edit-table th {
+            background: #f8fafc;
+            font-size: 13px;
+        }
+
+        .status-options {
+            display: flex;
+            gap: 18px;
+        }
+
+        .status-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .action-area {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px;
+        }
+
+        .update-button,
+        .cancel-button {
+            width: auto;
+            min-width: 150px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .update-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .update-button:hover {
+            background: #1d4ed8;
+        }
+
+        .cancel-button {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        @media (max-width: 800px) {
+
+            .session-info {
+                grid-template-columns: 1fr 1fr;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .session-info {
+                grid-template-columns: 1fr;
+            }
+
+            .action-area {
+                flex-direction: column;
+            }
+
+            .update-button,
+            .cancel-button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+
+            <h2>Attendance System</h2>
+
+            <p>Faculty Panel</p>
+
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="/faculty/dashboard"
+               class="nav-item">
+                Dashboard
+            </a>
+
+            <a href="/faculty/subjects"
+               class="nav-item">
+                My Subjects
+            </a>
+
+            <a href="/faculty/attendance"
+               class="nav-item">
+                Mark Attendance
+            </a>
+
+            <a href="/faculty/history"
+               class="nav-item active">
+                Attendance History
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+
+            <a href="/logout"
+               class="logout-link">
+                Logout
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+                <div class="flash-messages">
+
+                    {% for category, message in messages %}
+
+                        <div class="message {{ category }}">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <div class="edit-header">
+
+            <h1>Edit Attendance</h1>
+
+            <p>
+                Update the attendance for this session.
+            </p>
+
+        </div>
+
+
+        <div class="session-info">
+
+            <div class="info-box">
+                <span>Subject Code</span>
+                <strong>
+                    {{ attendance_session['subject_code'] }}
+                </strong>
+            </div>
+
+            <div class="info-box">
+                <span>Subject</span>
+                <strong>
+                    {{ attendance_session['subject_name'] }}
+                </strong>
+            </div>
+
+            <div class="info-box">
+                <span>Date</span>
+                <strong>
+                    {{ attendance_session['date'] }}
+                </strong>
+            </div>
+
+            <div class="info-box">
+                <span>Period</span>
+                <strong>
+                    Period {{ attendance_session['period'] }}
+                </strong>
+            </div>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'faculty_edit_attendance',
+                session_id=attendance_session['id']
+            ) }}"
+        >
+
+            <div class="edit-card">
+
+                <div class="edit-card-header">
+
+                    <h2>Student Attendance</h2>
+
+                </div>
+
+
+                <div class="edit-table-wrapper">
+
+                    <table class="edit-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Branch</th>
+                                <th>Attendance</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for student in students %}
+
+                            <tr>
+
+                                <td>
+                                    {{ student['student_id'] }}
+                                </td>
+
+                                <td>
+                                    {{ student['name'] }}
+                                </td>
+
+                                <td>
+                                    {{ student['branch'] }}
+                                </td>
+
+                                <td>
+
+                                    <div class="status-options">
+
+                                        <label class="status-option">
+
+                                            <input
+                                                type="radio"
+                                                name="attendance_{{ student['id'] }}"
+                                                value="PRESENT"
+                                                {% if student['status'] == 'PRESENT' %}
+                                                checked
+                                                {% endif %}
+                                                required
+                                            >
+
+                                            Present
+
+                                        </label>
+
+
+                                        <label class="status-option">
+
+                                            <input
+                                                type="radio"
+                                                name="attendance_{{ student['id'] }}"
+                                                value="ABSENT"
+                                                {% if student['status'] == 'ABSENT' %}
+                                                checked
+                                                {% endif %}
+                                            >
+
+                                            Absent
+
+                                        </label>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div class="action-area">
+
+                    <a
+                        href="{{ url_for('faculty_history') }}"
+                        class="cancel-button"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="update-button"
+                    >
+                        Update Attendance
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HOD Dashboard | Student Attendance System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>HOD Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/hod/dashboard" class="nav-item active">
+                    Dashboard
+                </a>
+
+                <a href="/hod/students" class="nav-item">
+                    Students
+                </a>
+
+                <a href="/hod/faculty" class="nav-item">
+                    Faculty
+                </a>
+
+                <a href="/hod/subjects" class="nav-item">
+                    Subjects
+                </a>
+
+                <a href="/hod/attendance" class="nav-item">
+                    Attendance
+                </a>
+
+                <a href="/hod/reports" class="nav-item">
+                    Reports
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <a href="/logout" class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Top Header -->
+            <header class="top-header">
+
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Student Attendance Management System</p>
+                </div>
+
+                <div class="user-info">
+                    <span>Welcome, HOD</span>
+                </div>
+
+            </header>
+
+
+            <!-- Statistics -->
+            <section class="stats-grid">
+
+                <div class="stat-card">
+                    <h3>Total Students</h3>
+                    <p>{{ total_students }}</p>
+                    <span>Registered students</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Present Today</h3>
+                    <p>{{ present_today }}</p>
+                    <span>Today's attendance</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Absent Today</h3>
+                    <p>{{ absent_today }}</p>
+                    <span>Today's absence</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Attendance %</h3>
+                    <p>{{ attendance_percentage }}%</p>
+                    <span>Overall attendance</span>
+                </div>
+
+            </section>
+
+
+            <!-- Dashboard Sections -->
+            <section class="dashboard-grid">
+
+                <div class="dashboard-card">
+
+                    <h2>Today's Attendance</h2>
+
+                    <p>
+                        Attendance statistics for today will
+                        appear here.
+                    </p>
+
+                </div>
+
+
+                <div class="dashboard-card">
+
+                    <h2>Quick Actions</h2>
+
+                    <div class="quick-actions">
+
+                        <a href="/hod/students" class="quick-action-button">
+                            Manage Students
+                        </a>
+
+                        <a href="/hod/faculty" class="quick-action-button">
+                            Manage Faculty
+                        </a>
+
+                        <a href="/hod/subjects" class="quick-action-button">
+                            Manage Subjects
+                        </a>
+
+                        <a href="/hod/reports" class="quick-action-button">
+                            View Reports
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

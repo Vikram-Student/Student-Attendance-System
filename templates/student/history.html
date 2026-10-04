@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance History | Student Attendance System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .history-header {
+            margin-bottom: 24px;
+        }
+
+        .history-header h1 {
+            margin-bottom: 6px;
+        }
+
+        .history-header p {
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        .history-card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-card-header h2 {
+            margin: 0 0 6px 0;
+        }
+
+        .history-card-header p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .history-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-table th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .history-table td {
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-present {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-absent {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .empty-state {
+            padding: 50px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .student-info-card {
+            margin-bottom: 24px;
+        }
+
+        .student-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .student-info-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .student-info-item span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .student-info-item strong {
+            color: #0f172a;
+            font-size: 14px;
+        }
+
+        @media (max-width: 1000px) {
+
+            .student-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .student-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 12px;
+                white-space: nowrap;
+            }
+
+        }
+
+        .history-filters {
+            margin-bottom: 24px;
+        }
+
+        .student-history-filter-form {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr auto;
+            gap: 16px;
+            align-items: end;
+            margin-top: 18px;
+        }
+
+        .filter-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .filter-field input,
+        .filter-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .filter-field input:focus,
+        .filter-field select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-button,
+        .clear-filter-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 110px;
+            padding: 11px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .filter-button {
+            border: none;
+            background: #2563eb;
+            color: white;
+        }
+
+        .filter-button:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-filter-button {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .clear-filter-button:hover {
+            background: #d1d5db;
+        }
+
+        @media (max-width: 1000px) {
+
+            .student-history-filter-form {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .filter-actions {
+                grid-column: 1 / -1;
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .student-history-filter-form {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-actions {
+                grid-column: auto;
+                flex-direction: column;
+            }
+
+            .filter-button,
+            .clear-filter-button {
+                width: 100%;
+            }
+
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+
+                <h2>Attendance System</h2>
+
+                <p>Student Panel</p>
+
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <a href="{{ url_for('student_dashboard') }}" class="nav-item">
+
+                    Dashboard
+
+                </a>
+
+
+                <a href="{{ url_for('student_history') }}" class="nav-item active">
+
+                    Attendance History
+
+                </a>
+
+            </nav>
+
+
+            <div class="sidebar-footer">
+
+                <a href="{{ url_for('logout') }}" class="logout-link">
+
+                    Logout
+
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+
+        <main class="main-content">
+
+            <!-- Header -->
+
+            <header class="top-header">
+
+                <div>
+
+                    <h1>Attendance History</h1>
+
+                    <p>
+                        View your complete attendance record
+                    </p>
+
+                </div>
+
+
+                <div class="user-info">
+
+                    <span>
+                        Welcome, {{ student['name'] }}
+                    </span>
+
+                </div>
+
+            </header>
+
+
+            <!-- Student Information -->
+
+            <section class="dashboard-card student-info-card">
+
+                <h2>Student Information</h2>
+
+
+                <div class="student-info-grid">
+
+                    <div class="student-info-item">
+
+                        <span>Student ID</span>
+
+                        <strong>
+                            {{ student['student_id'] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="student-info-item">
+
+                        <span>Name</span>
+
+                        <strong>
+                            {{ student['name'] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="student-info-item">
+
+                        <span>Branch</span>
+
+                        <strong>
+                            {{ student['branch'] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="student-info-item">
+
+                        <span>Year & Section</span>
+
+                        <strong>
+                            Year {{ student['year'] }} -
+                            Section {{ student['section'] }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- Attendance Filters -->
+
+            <section class="dashboard-card history-filters">
+
+                <h2>Attendance Filters</h2>
+
+                <form method="GET" action="{{ url_for('student_history') }}" class="student-history-filter-form">
+
+                    <!-- Subject -->
+
+                    <div class="filter-field">
+
+                        <label for="subject_id">
+                            Subject
+                        </label>
+
+                        <select name="subject_id" id="subject_id">
+
+                            <option value="">
+                                All Subjects
+                            </option>
+
+                            {% for subject in subjects %}
+
+                            <option value="{{ subject['id'] }}" {% if selected_subject==subject['id'] | string %}
+                                selected {% endif %}>
+
+                                {{ subject['subject_code'] }}
+                                -
+                                {{ subject['subject_name'] }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- From Date -->
+
+                    <div class="filter-field">
+
+                        <label for="from_date">
+                            From Date
+                        </label>
+
+                        <input type="date" name="from_date" id="from_date" value="{{ from_date }}">
+
+                    </div>
+
+
+                    <!-- To Date -->
+
+                    <div class="filter-field">
+
+                        <label for="to_date">
+                            To Date
+                        </label>
+
+                        <input type="date" name="to_date" id="to_date" value="{{ to_date }}">
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="filter-actions">
+
+                        <button type="submit" class="filter-button">
+                            Apply Filters
+                        </button>
+
+
+                        <a href="{{ url_for('student_history') }}" class="clear-filter-button">
+                            Clear
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+            <!-- Attendance History -->
+
+            <section class="history-card">
+
+                <div class="history-card-header">
+
+                    <h2>Attendance Records</h2>
+
+                    <p>
+                        Showing {{ attendance_history | length }} attendance record(s)
+                    </p>
+
+                </div>
+
+
+                {% if attendance_history %}
+
+                <div class="history-table-wrapper">
+
+                    <table class="history-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Date</th>
+
+                                <th>Period</th>
+
+                                <th>Subject Code</th>
+
+                                <th>Subject Name</th>
+
+                                <th>Year</th>
+
+                                <th>Section</th>
+
+                                <th>Status</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for record in attendance_history %}
+
+                            <tr>
+
+                                <td>
+                                    {{ record['date'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ record['period'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ record['subject_code'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ record['subject_name'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ record['year'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ record['section'] }}
+                                </td>
+
+
+                                <td>
+
+                                    {% if record['status'] == 'PRESENT' %}
+
+                                    <span class="status-badge status-present">
+                                        Present
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="status-badge status-absent">
+                                        Absent
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-state">
+
+                    <h3>No Attendance Records</h3>
+
+                    <p>
+                        No attendance records are available for your account yet.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

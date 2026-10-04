@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance History</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .history-header {
+            margin-bottom: 24px;
+        }
+
+        .history-header h1 {
+            margin-bottom: 6px;
+        }
+
+        .history-header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        .history-card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-card-header h2 {
+            margin: 0;
+        }
+
+        .history-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-table th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 13px;
+        }
+
+        .history-table td {
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .edit-attendance-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 14px;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .edit-attendance-button:hover {
+            background: #1d4ed8;
+        }
+
+        .empty-history {
+            padding: 50px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        @media (max-width: 700px) {
+
+            .edit-attendance-button {
+                width: 100%;
+            }
+
+        }
+
+        .history-filters {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr auto;
+            gap: 16px;
+            padding: 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .filter-actions {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .filter-button,
+        .clear-filter-button {
+            width: auto;
+            min-width: 85px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .filter-button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        .filter-button:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-filter-button {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .clear-filter-button:hover {
+            background: #d1d5db;
+        }
+
+        .present-count {
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .absent-count {
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
+        .history-table small {
+            color: #64748b;
+        }
+
+        @media (max-width: 1000px) {
+
+            .history-filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .history-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-actions {
+                align-items: stretch;
+            }
+
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+
+                <h2>Attendance System</h2>
+
+                <p>Faculty Panel</p>
+
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <a href="/faculty/dashboard" class="nav-item">
+                    Dashboard
+                </a>
+
+                <a href="/faculty/subjects" class="nav-item">
+                    My Subjects
+                </a>
+
+                <a href="/faculty/attendance" class="nav-item">
+                    Mark Attendance
+                </a>
+
+                <a href="/faculty/history" class="nav-item active">
+                    Attendance History
+                </a>
+
+            </nav>
+
+
+            <div class="sidebar-footer">
+
+                <a href="/logout" class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+
+        <main class="main-content">
+
+
+            <!-- Flash Messages -->
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for category, message in messages %}
+
+                <div class="message {{ category }}">
+                    {{ message }}
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            {% endwith %}
+
+
+            <div class="history-header">
+
+                <h1>Attendance History</h1>
+
+                <p>
+                    View and edit your previous attendance sessions.
+                </p>
+
+            </div>
+
+
+            <div class="history-card">
+
+                <div class="history-card-header">
+
+                    <h2>Attendance Sessions</h2>
+
+                </div>
+
+
+                <!-- Filters -->
+
+                <form method="GET" action="{{ url_for('faculty_history') }}" class="history-filters">
+
+                    <div class="filter-group">
+
+                        <label for="subject_id">
+                            Subject
+                        </label>
+
+                        <select id="subject_id" name="subject_id">
+
+                            <option value="">
+                                All Subjects
+                            </option>
+
+                            {% for subject in subjects %}
+
+                            <option value="{{ subject['id'] }}" {% if selected_subject|string==subject['id']|string %}
+                                selected {% endif %}>
+                                {{ subject['subject_code'] }} -
+                                {{ subject['subject_name'] }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="filter-group">
+
+                        <label for="from_date">
+                            From Date
+                        </label>
+
+                        <input type="date" id="from_date" name="from_date" value="{{ from_date }}">
+
+                    </div>
+
+
+                    <div class="filter-group">
+
+                        <label for="to_date">
+                            To Date
+                        </label>
+
+                        <input type="date" id="to_date" name="to_date" value="{{ to_date }}">
+
+                    </div>
+
+
+                    <div class="filter-actions">
+
+                        <button type="submit" class="filter-button">
+                            Filter
+                        </button>
+
+                        <a href="{{ url_for('faculty_history') }}" class="clear-filter-button">
+                            Clear
+                        </a>
+
+                    </div>
+
+                </form>
+
+
+                {% if sessions %}
+
+                <div class="history-table-wrapper">
+
+                    <table class="history-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Subject</th>
+
+                                <th>Year</th>
+
+                                <th>Section</th>
+
+                                <th>Date</th>
+
+                                <th>Period</th>
+
+                                <th>Total</th>
+
+                                <th>Present</th>
+
+                                <th>Absent</th>
+
+                                <th>Attendance %</th>
+
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for item in sessions %}
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+                                        {{ item['subject_code'] }}
+                                    </strong>
+
+                                    <br>
+
+                                    <small>
+                                        {{ item['subject_name'] }}
+                                    </small>
+
+                                </td>
+
+
+                                <td>
+                                    {{ item['year'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ item['section'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ item['date'] }}
+                                </td>
+
+
+                                <td>
+                                    Period {{ item['period'] }}
+                                </td>
+
+
+                                <td>
+                                    {{ item['total_students'] }}
+                                </td>
+
+
+                                <td>
+
+                                    <span class="present-count">
+                                        {{ item['present_count'] }}
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="absent-count">
+                                        {{ item['absent_count'] }}
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        {{ item['percentage'] }}%
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+
+                                    <a href="{{ url_for(
+                                        'faculty_edit_attendance',
+                                        session_id=item['id']
+                                    ) }}" class="edit-attendance-button">
+                                        Edit
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-history">
+
+                    No attendance sessions found
+                    for the selected filters.
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

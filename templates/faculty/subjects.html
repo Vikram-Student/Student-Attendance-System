@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Subjects | Student Attendance System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+                <p>Faculty Panel</p>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/faculty/dashboard"
+                   class="nav-item">
+                    Dashboard
+                </a>
+
+                <a href="/faculty/subjects"
+                   class="nav-item active">
+                    My Subjects
+                </a>
+
+                <a href="/faculty/attendance"
+                   class="nav-item">
+                    Mark Attendance
+                </a>
+
+                <a href="/faculty/history"
+                   class="nav-item">
+                    Attendance History
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <a href="/logout"
+                   class="logout-link">
+                    Logout
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    <div class="flash-messages">
+
+                        {% for category, message in messages %}
+
+                            <div class="message {{ category }}">
+                                {{ message }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Header -->
+            <header class="top-header">
+
+                <div>
+
+                    <h1>My Subjects</h1>
+
+                    <p>
+                        Subjects assigned to you
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <!-- Subject List -->
+            <section class="dashboard-card">
+
+                <h2>Assigned Subjects</h2>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Subject Code</th>
+                                <th>Subject Name</th>
+                                <th>Year</th>
+                                <th>Section</th>
+                                <th>Action</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% if subjects %}
+
+                                {% for subject in subjects %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ subject['subject_code'] }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject['subject_name'] }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject['year'] }}
+                                    </td>
+
+                                    <td>
+                                        {{ subject['section'] }}
+                                    </td>
+
+                                    <td>
+
+                                        <a
+                                            href="{{ url_for(
+                                                'faculty_attendance',
+                                                subject_id=subject['id']
+                                            ) }}"
+                                            class="action-button edit-button"
+                                        >
+                                            Mark Attendance
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="5"
+                                        style="text-align: center;"
+                                    >
+                                        No subjects assigned to you yet.
+                                    </td>
+
+                                </tr>
+
+                            {% endif %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>
