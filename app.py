@@ -2,7 +2,7 @@ import os
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, Response
 from dotenv import load_dotenv
-import sqlite3
+from database.db import (get_db_connection, DatabaseError, DatabaseIntegrityError)
 import csv
 import io
 
@@ -35,8 +35,7 @@ def login():
         username = request.form["username"].strip()
         password = request.form["password"]
 
-        connection = sqlite3.connect(DATABASE_PATH)
-        connection.row_factory = sqlite3.Row
+        connection = get_db_connection()
 
         user = connection.execute(
             "SELECT * FROM users WHERE username = ?",
@@ -79,8 +78,7 @@ def hod_dashboard():
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     today = __import__("datetime").date.today().isoformat()
 
@@ -142,8 +140,7 @@ def hod_students():
 
     search = request.args.get("search", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     if search:
 
@@ -243,7 +240,7 @@ def add_student():
             flash("Invalid section selected.", "error")
             return redirect(url_for("add_student"))
 
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = get_db_connection()
 
         existing_student = connection.execute("""
             SELECT id
@@ -301,8 +298,7 @@ def edit_student(student_id):
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     student = connection.execute("""
         SELECT *
@@ -421,7 +417,7 @@ def edit_student(student_id):
 
             return redirect(url_for("hod_students"))
 
-        except sqlite3.IntegrityError:
+        except DatabaseIntegrityError:
 
             connection.close()
 
@@ -453,8 +449,7 @@ def delete_student(student_id):
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     student = connection.execute("""
         SELECT id, name
@@ -494,7 +489,7 @@ def delete_student(student_id):
             "success"
         )
 
-    except sqlite3.Error:
+    except DatabaseError:
 
         connection.rollback()
         connection.close()
@@ -517,8 +512,7 @@ def hod_faculty():
 
     search = request.args.get("search", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     if search:
 
@@ -577,7 +571,7 @@ def add_faculty():
         username = request.form["username"].strip()
         password = request.form["password"]
 
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = get_db_connection()
 
         # Check duplicate Faculty ID
         existing_faculty = connection.execute("""
@@ -619,7 +613,7 @@ def add_faculty():
             # Create login account
             password_hash = generate_password_hash(password)
 
-            cursor = connection.execute("""
+            user_id = connection.execute_insert_returning_id("""
                 INSERT INTO users (
                     username,
                     password_hash,
@@ -628,7 +622,7 @@ def add_faculty():
                 VALUES (?, ?, 'FACULTY')
             """, (username, password_hash))
 
-            user_id = cursor.lastrowid
+
 
             # Create faculty record
             connection.execute("""
@@ -652,7 +646,7 @@ def add_faculty():
             flash("Faculty added successfully.", "success")
             return redirect(url_for("hod_faculty"))
 
-        except sqlite3.IntegrityError:
+        except DatabaseIntegrityError:
             connection.rollback()
             connection.close()
 
@@ -669,8 +663,7 @@ def edit_faculty(faculty_id):
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     faculty = connection.execute("""
         SELECT
@@ -779,7 +772,7 @@ def edit_faculty(faculty_id):
 
             return redirect(url_for("hod_faculty"))
 
-        except sqlite3.Error:
+        except DatabaseError:
             connection.rollback()
             connection.close()
 
@@ -808,8 +801,7 @@ def delete_faculty(faculty_id):
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     faculty = connection.execute("""
         SELECT id, name, user_id
@@ -845,7 +837,7 @@ def delete_faculty(faculty_id):
             "success"
         )
 
-    except sqlite3.Error:
+    except DatabaseError:
         connection.rollback()
         connection.close()
 
@@ -866,8 +858,7 @@ def hod_subjects():
 
     search = request.args.get("search", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     if search:
         search_pattern = f"%{search}%"
@@ -886,7 +877,7 @@ def hod_subjects():
             WHERE subjects.subject_code LIKE ?
                OR subjects.subject_name LIKE ?
                OR faculty.name LIKE ?
-               OR subjects.year LIKE ?
+               OR CAST(subjects.year AS TEXT) LIKE ?
                OR subjects.section LIKE ?
             ORDER BY subjects.id DESC
         """, (
@@ -929,8 +920,7 @@ def add_subject():
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     # Get faculty members for dropdown
     faculty = connection.execute("""
@@ -993,7 +983,7 @@ def add_subject():
 
             return redirect(url_for("hod_subjects"))
 
-        except sqlite3.Error:
+        except DatabaseError:
 
             connection.rollback()
             connection.close()
@@ -1020,8 +1010,7 @@ def edit_subject(subject_id):
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     # Get subject
     subject = connection.execute("""
@@ -1109,7 +1098,7 @@ def edit_subject(subject_id):
 
             return redirect(url_for("hod_subjects"))
 
-        except sqlite3.Error:
+        except DatabaseError:
 
             connection.rollback()
             connection.close()
@@ -1140,8 +1129,7 @@ def delete_subject(subject_id):
     if session.get("role") != "HOD":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     subject = connection.execute("""
         SELECT id, subject_name
@@ -1181,7 +1169,7 @@ def delete_subject(subject_id):
             "success"
         )
 
-    except sqlite3.Error:
+    except DatabaseError:
         connection.rollback()
         connection.close()
 
@@ -1203,8 +1191,7 @@ def hod_attendance():
     selected_date = request.args.get("date", "").strip()
     selected_subject = request.args.get("subject_id", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     # Get all subjects for the filter
     subjects = connection.execute("""
@@ -1507,8 +1494,7 @@ def hod_attendance_export():
     selected_date = request.args.get("date", "").strip()
     selected_subject = request.args.get("subject_id", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     query = """
         SELECT
@@ -1625,8 +1611,7 @@ def hod_attendance_export_excel():
     selected_date = request.args.get("date", "").strip()
     selected_subject = request.args.get("subject_id", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     selected_subject_name = ""
 
@@ -1963,8 +1948,7 @@ def hod_attendance_export_pdf():
     selected_date = request.args.get("date", "").strip()
     selected_subject = request.args.get("subject_id", "").strip()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     if selected_subject:
         subject = connection.execute(
@@ -2274,8 +2258,7 @@ def hod_reports():
     if not to_date:
         to_date = today.isoformat()
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     # Subjects for filter
     subjects = connection.execute("""
@@ -2437,8 +2420,7 @@ def faculty_dashboard():
     if session.get("role") != "FACULTY":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
@@ -2471,7 +2453,7 @@ def faculty_dashboard():
         SELECT COUNT(*)
         FROM subjects
         WHERE faculty_id = ?
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2482,7 +2464,7 @@ def faculty_dashboard():
         SELECT COUNT(*)
         FROM attendance_sessions
         WHERE faculty_id = ?
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2493,8 +2475,8 @@ def faculty_dashboard():
         SELECT COUNT(*)
         FROM attendance_sessions
         WHERE faculty_id = ?
-          AND date = DATE('now', 'localtime')
-    """, (faculty_id,)).fetchone()[0]
+          AND date = ?
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2508,7 +2490,7 @@ def faculty_dashboard():
             ON students.year = subjects.year
             AND students.section = subjects.section
         WHERE subjects.faculty_id = ?
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2519,16 +2501,16 @@ def faculty_dashboard():
         SELECT COUNT(*)
         FROM attendance
         WHERE marked_by = ?
-          AND date = DATE('now', 'localtime')
-    """, (faculty_id,)).fetchone()[0]
+          AND date = ?
+    """, (faculty_id,)).fetchone()["count"]
 
     today_present = connection.execute("""
         SELECT COUNT(*)
         FROM attendance
         WHERE marked_by = ?
-          AND date = DATE('now', 'localtime')
+          AND date = ?
           AND status = 'PRESENT'
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
     if today_attendance > 0:
 
@@ -2550,7 +2532,7 @@ def faculty_dashboard():
         SELECT COUNT(*)
         FROM attendance
         WHERE marked_by = ?
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2562,7 +2544,7 @@ def faculty_dashboard():
         FROM attendance
         WHERE marked_by = ?
           AND status = 'PRESENT'
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2574,7 +2556,7 @@ def faculty_dashboard():
         FROM attendance
         WHERE marked_by = ?
           AND status = 'ABSENT'
-    """, (faculty_id,)).fetchone()[0]
+    """, (faculty_id,)).fetchone()["count"]
 
 
     # -----------------------------------------
@@ -2752,8 +2734,7 @@ def faculty_subjects():
     if session.get("role") != "FACULTY":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
@@ -2804,8 +2785,7 @@ def faculty_attendance():
     if session.get("role") != "FACULTY":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
@@ -2991,7 +2971,7 @@ def faculty_attendance():
                 "success"
             )
 
-        except sqlite3.IntegrityError:
+        except DatabaseIntegrityError:
 
             connection.rollback()
 
@@ -3027,8 +3007,7 @@ def faculty_history():
     if session.get("role") != "FACULTY":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
@@ -3101,7 +3080,7 @@ def faculty_history():
         LEFT JOIN attendance
             ON attendance.subject_id = attendance_sessions.subject_id
             AND attendance.date = attendance_sessions.date
-            AND attendance.period = attendance_sessions.period
+            AND CAST(attendance.period AS INTEGER) = attendance_sessions.period
 
         WHERE attendance_sessions.faculty_id = ?
     """
@@ -3198,8 +3177,7 @@ def faculty_edit_attendance(session_id):
     if session.get("role") != "FACULTY":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
@@ -3253,7 +3231,7 @@ def faculty_edit_attendance(session_id):
             ON students.id = attendance.student_id
             AND attendance.subject_id = ?
             AND attendance.date = ?
-            AND attendance.period = ?
+            AND CAST(attendance.period AS INTEGER) = ?
         WHERE students.year = ?
           AND students.section = ?
         ORDER BY students.student_id ASC
@@ -3310,7 +3288,7 @@ def faculty_edit_attendance(session_id):
                     WHERE student_id = ?
                       AND subject_id = ?
                       AND date = ?
-                      AND period = ?
+                      AND CAST(period AS INTEGER) = ?
                 """, (
                     student_id,
                     subject_id,
@@ -3364,7 +3342,7 @@ def faculty_edit_attendance(session_id):
 
             return redirect(url_for("faculty_history"))
 
-        except sqlite3.Error:
+        except DatabaseError:
 
             connection.rollback()
             connection.close()
@@ -3398,8 +3376,7 @@ def student_dashboard():
     if session.get("role") != "STUDENT":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
@@ -3540,8 +3517,7 @@ def student_history():
     if session.get("role") != "STUDENT":
         return "Access denied", 403
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
+    connection = get_db_connection()
 
     user_id = session["user_id"]
 
